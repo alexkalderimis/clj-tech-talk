@@ -10,17 +10,6 @@
 ;; -------------------------
 ;; Views
 
-(defn home-page []
-  [:div.slide
-   [:div.heading
-    [:h1.title "Clojure and Mori"]
-    [:h2.subtitle "[ :immutability :composability :extensibility ]"]]
-   [:p "The triumph of design, or why a language
-        from the 50s is relevant to developers of today"]
-   [:footer
-    [:a.next {:href "#/1"} "What is new?"]
-    [:a {:href "#/about"} "about these slides"]]])
-
 (defn reveal [n snippet]
   (when (= (session/get :reveal) n) snippet))
 
@@ -29,11 +18,10 @@
    (doall
     (for [[i [point example]] (map vector (range) xs)]
       ^{:key i}
-      [:li point
-            (reveal i example)]))])
+      (reveal i [:li point example])))])
 
 (defn slide* [n slide prv nxt total]
-  [:div.slide {:on-click #(session/update-in! [:reveal] inc)}
+  [:div.slide 
    [:div.heading
     [:h1.title (get-in slide [:heading :title])]
     [:h2.subtitle (get-in slide [:heading :subtitle])]]
@@ -94,28 +82,47 @@
 
 (def slide-handlers (defslides
 
+  {:heading {:title "Clojure and Mori"
+             :subtitle "[ :immutability :composability :extensibility ]"}
+   :content (list
+              [:p "The triumph of design, or why a language
+                   from the 50s is relevant to developers of today"]
+              [:img.cover {:src "/img/x1.jpg"}]
+              )}
+
   {:heading {:title "What is new?"
-             :subtitle "Nothing!"}
-   :content (revealing
-     ["A Lisp"
-      [:pre "(repeatedly 10 #(println \"The lambda calculus rocks\"))"]]
-     ["On the JVM"
-      [:pre "(doto (KafkaClient.) (.setJob job) (.run))"]]
-     ["With collection literals"
-      [:pre
-        "{:x 1, :y 2, :c 3}\n"
-        "[1 2 3]\n"
-        "#{:a :b :c}\n"]]
-     ["Built on persistent data-structures"
-      [:pre
-         "(let [a {:x 1}\n"
-         "      b (into a [[:y 2] [:z 3]])]\n"
-         "  (= a b)) ;; false"]]
-     ["And type-classes"
-      [:pre "(instance Fooish ... todo)"]])}
+             :subtitle "Nothing! Clojure is just..."}
+   :content (list
+              (revealing
+                ["A Lisp"
+                 [:pre "(repeatedly 10 #(println \"The lambda calculus rocks\"))"]]
+                ["On the JVM"
+                 [:pre "(doto (KafkaClient.) (.setJob job) (.run))"]]
+                ["With collection literals"
+                 [:pre
+                  "{:x 1, :y 2, :c 3}\n"
+                  "[1 2 3]\n"
+                  "#{:a :b :c}\n"]]
+                ["And destructuring"
+                 [:pre
+                  "(defn [{age :age, [given family] :name}]\n"
+                  "  (if (> age 18)\n"
+                  "    (println \"All hail \" given \" of house \" family)\n"
+                  "    (println \"Aren't you cute\")))"
+                  ]]
+                ["Built on persistent data-structures"
+                 [:pre
+                  "(let [a {:x 1}\n"
+                  "      b (into a [[:y 2] [:z 3]])]\n"
+                  "  (= a b)) ;; false"]]
+                ["And type-classes"
+                 [:pre "(instance Fooish ... todo)"]])
+              [:img.cover {:src "/img/sputnik.jpg"}])
+   }
 
   {:heading {:title "Then why care?"}
-   :content (revealing
+   :content (list
+              (revealing
       ["Elegant"
        [:img {:src "http://imgs.xkcd.com/comics/lisp_cycles.png"}]]
       ["Multi-platform"
@@ -138,7 +145,8 @@
           [:span.label [:strong "immutable"] " but mutability is available"]
           [:span.label [:strong "functional"] " but objects are easy to use"]
         [:p
-          "In short, it makes good things easy, without tieing your hands"]]])}
+          "In short, it makes good things easy, without tieing your hands"]]])
+              [:img.cover {:src "/img/747.jpg"}])}
 
   {:heading {:title "The case for immutability"}
    :content (list
@@ -178,7 +186,7 @@
         -1 un-refactored-thrush
         0 mid-refactor-thrush
         1 refactored-thrush
-        refactored-with-new-step)])}))
+        refactored-with-new-step)])}
 
 ;; slide-5 - clojure's immutable collections
 ;; small consistent API conj, assoc, into, map, filter, mapcat, reduce, update-in
@@ -190,35 +198,47 @@
 ;; -- quite simply the best designed API I've ever worked with.
 ;; (and then lead into Mori, Immutable)
 
-;; comparison of approaches to the problems of concurrency:
-;; Ruby, Python - GIL 
-;; JS - Single threaded (node: aync all the things!)
-;; Java - Here is a giant box of concurrency primitives
-;; Go - channels
-;; Erlang - (very lightweight) processes
-;; Haskell - STM
-;; Clojure - Isolated mutation (atoms, refs - STM) + channels
 
-(defn about-page []
-  [:div.slide
-   [:h2 "About these slides"]
-   [:p
-    "These slides are built with clojure! They make use of:"]
-   [:ul
-    [:li "Leiningen"]
-    [:li "Reagent"]
-    [:li "Secretary"]
-    [:li "Compojure"]]
-   [:p
-    "You can run this presentation by cloning the repository
-     and running the build:"]
-   [:pre.console
-    "> hub clone alexkalderimis/clj-tech-talk\n"
-    "> lein figwheel"]
-   [:div [:a {:href "#/"} "go to the home page"]]])
+;; slide-6 - you can have this too! (mostly)
+;; mori and Immutable.js
+;; the very same API as clojure - the same collections framework as cljs
+;; react, angular, backbone - observing mutation much easier and cleaner
+;; when it is on immutable structures.
+;; downsides - new collection API - not (trivially) interoperable 
+
+  {:heading {:title "Other approaches"}
+   :content (list
+              [:p "This is not the only language/platform that has sought to address
+                   the challenges of mutability in a concurrent environment"]
+              (revealing
+               ["node.js" "Single thread of execution, async I/O"]
+               ["Go" "Channels"]
+               ["Erlang" "processes, messages"]
+               ["Akka" "actors, messages"]
+               ["Haskell" "STM"]
+               ["Ruby, Python", "GIL"]
+               ["Java" "Synchronisation"]))}
+
+  {:heading {:title "About these slides"}
+   :content (list
+    [:p
+      "These slides are built with clojure! They make use of:"]
+    [:ul
+      [:li "Leiningen"]
+      [:li "Reagent"]
+      [:li "Secretary"]
+      [:li "Compojure"]]
+    [:p
+      "You can run this presentation by cloning the repository
+      and running the build:"]
+    [:pre.console
+      "> hub clone alexkalderimis/clj-tech-talk\n"
+      "> lein figwheel"])}))
 
 (defn current-page []
-  [:div [(session/get :current-page)]])
+  (let [slide (slide-handlers (session/get :current-page))]
+    [:div {:on-click #(session/update-in! [:reveal] inc)}
+          [slide]]))
 
 (defn clear-reveal []
   (session/put! :reveal -1))
@@ -228,24 +248,16 @@
 (secretary/set-config! :prefix "#")
 
 (secretary/defroute "/" []
-  (session/put! :current-page #'home-page))
-
-(secretary/defroute "/about" []
-  (session/put! :current-page #'about-page))
+  (clear-reveal)
+  (session/put! :current-page 0))
 
 (secretary/defroute revealed-slide "/:slide.:reveal" [slide reveal]
-  (js/console.log "reveal = " reveal)
-  (session/put! :reveal (int reveal))
-  (session/put! :current-page (slide-handlers (dec (int slide)))))
+  (session/put! :reveal            (int reveal))
+  (session/put! :current-page (dec (int slide))))
 
 (secretary/defroute "/:slide" [slide]
   (clear-reveal)
-  (session/put! :current-page (slide-handlers (dec (int slide)))))
-
-(doseq [[i handler] (map-indexed vector slide-handlers)]
-  (secretary/defroute (str "/:" (inc i)) []
-    (clear-reveal)
-    (session/put! :current-page handler)))
+  (session/put! :current-page (dec (int slide))))
 
 ;; -------------------------
 ;; History
@@ -258,11 +270,38 @@
        (secretary/dispatch! (.-token event))))
     (.setEnabled true)))
 
+(defn next-page []
+  (clear-reveal)
+  (session/update-in! [:current-page]
+                      (comp (partial min (dec (count slide-handlers))) inc)))
+
+(defn prev-page []
+  (clear-reveal)
+  (session/update-in! [:current-page]
+                      (comp (partial max 0) dec)))
+
+
+(defn hook-events []
+  (js/console.log "binding to " EventType/KEYUP)
+  (events/listen
+    js/window
+    "keyup" ;; EventType.KEYUP
+    #(case (.-keyCode %)
+       38 (session/update-in! [:reveal] (comp (partial max -1) dec))
+       40 (session/update-in! [:reveal] inc)
+       32 (session/update-in! [:reveal] inc)
+       39 (next-page)
+       37 (prev-page)
+       nil)))
+
 ;; -------------------------
 ;; Initialize app
 (defn mount-root []
-  (reagent/render [current-page] (.getElementById js/document "app")))
+  (reagent/render [current-page]
+                  (.getElementById js/document "app")))
 
 (defn init! []
+  (session/put! :current-page 0)
   (hook-browser-navigation!)
+  (hook-events)
   (mount-root))

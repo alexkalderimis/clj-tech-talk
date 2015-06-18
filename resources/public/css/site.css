@@ -16,6 +16,9 @@ body.page .subtitle {
   text-align: center;
   font-size: 185%;
 }
+body.page .slide img.cover {
+  width: 100%;
+}
 body.page .slide p {
   padding: 0 2em;
 }
